@@ -1,3 +1,4 @@
+#!/bin/env python
 """Main mkmf2 script.
 
 From here you can run all the mkmf2 options including: -R, -v, -h
