@@ -35,7 +35,7 @@ if __name__ == "__main__":
 	vv = False
 	mainDir = False
 	for i in sys.argv:
-		if i == "-R" or i == "--recursive":
+		if i == "-R" or i == "--recursive": 
 			recursive = True
 		if i == "--verbose" or i == "-v":
 			verbose = True
@@ -54,11 +54,9 @@ if __name__ == "__main__":
 			sys.exit()
 			
 	
-	print("------------------------------")
-	print(recursive)
-	print(mainDir)
 	writeModules(sys.argv[1], verbose, vv, recursive, mainDir)
-	print("Done")
-	print("------------------------------")
-	
+	if verbose or vv:
+		print("-------------------------------")
+		print("All dependencies are resolved.")
+		print("-------------------------------")
 	

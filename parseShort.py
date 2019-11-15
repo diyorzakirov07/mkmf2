@@ -29,7 +29,7 @@ import re;
 import os;
 
 
-def getModules(fileName, verbose = False):
+def getModules(fileName, verbose = False, vv = False):
 	"""Parses Fortran file and returns module dependencies.
 
 	This function takes in a file to parse through. 
@@ -40,16 +40,15 @@ def getModules(fileName, verbose = False):
 	
 	fileContents = open(fileName, encoding = 'latin-1').read()
 
-	if verbose:
+	if verbose or vv:
 		print("Open " + fileName + " and read contents")
 	
-	"""Regex pattern to find matches in the file
-	Checks for USE and possible & on the same or next line, until module name is found signified by the '?'
-	Ignores cases and tries to match on all lines
-	"""
+	if vv:
+		print("Regex pattern to find matches in the file. Checks for USE and possible & on the same or next line, until module name is found signified by the '?'. Ignores cases and tries to match on all lines")
+		print("Regex patter: ^ *USE[ &\n]+.*?[ &\n]*,")
 	patternMatch = re.compile('^ *USE[ &\n]+.*?[ &\n]*,', re.IGNORECASE | re.M) 
 	
-	if verbose:
+	if verbose or vv:
 		print("Parsing the file, finding all possible matches using regex")
 		
 	"""Finds all possible matches in the file.
@@ -61,18 +60,18 @@ def getModules(fileName, verbose = False):
 	Removes spaces, characters from pattern matching, and checks for duplicates.
 	"""
 	for match in matches:
-		if verbose:
+		if verbose or vv:
 			print("Match found: " + match)
 		match = match.lower().strip()
 		badChars = ["use", "&", '\n', ' ', ',']
 		for char in badChars:
 			match = match.replace(char, '')
-		if verbose:
+		if verbose or vv:
 			print("Cleaning up the match: " + match +"\n")
 		if not match in MODS:
 			MODS.append(match)
 	
-	if verbose:		
+	if verbose or vv:		
 		print("The module dependencies are:")
 		for m  in MODS:
 			print(m)
@@ -154,8 +153,12 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 	Creates a Makefile.am in the path provided, resolving all possible dependencies.
 	Requires a path to a folder with Fortran modules. 
 	"""
+	
 	if mainDir:
 		getAMCPP(path)
+		if verbose or vv:
+			print("Creating AMCPPFLAGS dictionary...")
+			print(amcppDic)
 	
 	fortranMatch = re.compile('.*F90', re.IGNORECASE)
 	
@@ -203,12 +206,17 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 				break;
 			if not os.path.isfile(path + "/" + file):
 				subDirModules += (getSubdirModuleNameList(path + "/" + file))
+				if verbose or vv:
+					print("Creating list of sub directory modules...")
+					if vv:
+						print(subDirModules)
+					
 
 	
 	for file in fileList:
 		"""List all possible sub directories"""
 		if not os.path.isfile(path + "/" + file) and file != ".git":
-			if vv:
+			if verbose or vv:
 				print("Found sub directory: " + file)
 			SUBDIRS_str += ("\t" + file + " \\\n")
 			SUBDIRSLIB_str += "\tlib" + file + ".la \\\n"
@@ -216,23 +224,25 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 		
 		"""List Fortran file sources"""
 		if fortranMatch.match(file):
-			if vv:
+			if verbose or vv:
 				print("Found source file: " + file)
 			SOURCES_str += ("\t" + file + " \\\n")
 			MODULESINIT_str += (getFileModuleName(file) + ".$(FC_MODEXT) : " + file.split('.')[0] + ".$(OBJEXT)\n")
 			
 			"""List dependencies of each file"""
-			set1 = set(getModules(file, verbose)).intersection(getPathModuleNameList(path))
-			set2 = set(getModules(file, verbose)).intersection(subDirModules)
+			set1 = set(getModules(file, verbose,vv)).intersection(getPathModuleNameList(path))
+			set2 = set(getModules(file, verbose,vv)).intersection(subDirModules)
 			"""List AMCPPFLAGS for modules"""
-			for mod in getModules(file):
+			for mod in getModules(file,vv):
 				if mod in amcppDic and not mod in set1 and not mod in set2:
 					if amcppDic[mod] in AMCPPFLAGS_str:
 						pass; 
 					else:
+						if vv:
+							print("Found module needing AMCCPFLAG: " + mod)
 						AMCPPFLAGS_str += "\t-I${top_buildir}/" + amcppDic[mod] + "\\\n"
 			if set1 or set2:
-				if vv:
+				if verbose or vv:
 					print("Found dependencies for " + file)
 					print("Dependencies...\n")
 					print(set1)
@@ -256,6 +266,8 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 	if AMCPPFLAGS_str != '':
 		if verbose or vv:
 			print("\nWriting AMCPPFLAGS... \n")
+			if vv:
+				print(AMCPPFLAGS_str)
 		makefile.write("AM_CPPFLAGS = \\\n" + AMCPPFLAGS_str[0:len(AMCPPFLAGS_str)-2] + '\n')
 	
 	makefile.write("\n\n")
@@ -263,6 +275,8 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 	if SUBDIRS_str != '':
 		if verbose or vv:
 			print("\nWriting sub directories... \n")
+			if vv:
+				print(SUBDIRS_str)
 		makefile.write("SUBDIRS = \\\n" + SUBDIRS_str[0:len(SUBDIRS_str)-3] + '\n')
 		makefile.write('\n\n')
 		makefile.write("lib" + folder + "_la_LIBADD = \\\n" + SUBDIRSLIB_str[0:len(SUBDIRSLIB_str)-3] + '\n')
@@ -272,6 +286,8 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 	if SOURCES_str != '':
 		if verbose or vv:
 			print("\nWriting Fortran sources... \n")
+			if vv:
+				print(SOURCES_str)
 		makefile.write("noinst_LTLIBRARIES = lib" + folder + ".la\n" +
 					  "lib" + folder +"_la_SOURCES = \\\n" + 
 					  SOURCES_str[0:len(SOURCES_str)-2] + '\n')
@@ -280,18 +296,24 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 		
 		if verbose or vv:
 			print("\nWriting module initializations... \n")
+			if vv:
+				print(MODULESINIT_str)
 		makefile.write(MODULESINIT_str)
 		
 		makefile.write("\n\n")
 		
 		if verbose or vv:
 			print("\nWriting module dependencies... \n")
+			if vv: 
+				print(DEPENDENCIES_str)
 		makefile.write(DEPENDENCIES_str)
 		
 		makefile.write("\n\n")
 		
 		if verbose or vv:
 			print("\nWriting built_sources... \n")
+			if vv:
+				print(BUILTSOURCES_str)
 		makefile.write("MODFILES = \\\n" + BUILTSOURCES_str[0:len(BUILTSOURCES_str)-3] + '\n' + 
 					"BUILT_SOURCES = $(MODFILES)\n" + 
 					"include_HEADERS = $(MODFILES)\n")
