@@ -42,7 +42,7 @@ for index, line in enumerate(fcontents.splitlines()):
 							if md == mods[0]:
 								alreadyExists = True
 								if vv:
-									print(fname,": the module ",md," is listd more than once.  only keeping one")
+									print(fname,": the module ",md," is listed more than once.  only keeping one")
 									break;
 							if not alreadyExists:
 								module_dependencies.append(mods[0])
@@ -57,7 +57,7 @@ for index, line in enumerate(fcontents.splitlines()):
 							if md == mods[0]:
 								alreadyExists = True
 								if vv:
-									print(fname,": the module ",md," is listd more than once.  only keeping one")
+									print(fname,": the module ",md," is listed more than once.  only keeping one")
 									break;
 							if not alreadyExists:
 								module_dependencies.append(mods[0])				
