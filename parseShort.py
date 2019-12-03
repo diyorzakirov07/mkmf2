@@ -85,16 +85,14 @@ def getFileModuleName(fileName):
 	
 	Requires name of file to be parsed.
 	"""
+	badChars = ["module", "module.", "modules"]
+	
 	fileContents = open(fileName, encoding = 'latin-1').read()
 	
 	moduleNameMatch = re.compile('MODULE+.*', re.IGNORECASE)
 	
 	matches = re.findall(moduleNameMatch, fileContents)
-	
-	if not matches:
-		matches = ' '
-		return matches
-	if matches[0] == "module" or matches[0] == "module.":
+	if not matches or matches[0] in badChars:
 		matches = ' '
 		return matches
 	else:
@@ -239,8 +237,8 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 						pass; 
 					else:
 						if vv:
-							print("Found module needing AMCCPFLAG: " + mod)
-						AMCPPFLAGS_str += "\t-I${top_buildir}/" + amcppDic[mod] + "\\\n"
+							print("Found module needing AMCPPFLAG: " + mod)
+						AMCPPFLAGS_str += "\t-I${top_buildir}/" + amcppDic[mod] + " \\\n"
 			if set1 or set2:
 				if verbose or vv:
 					print("Found dependencies for " + file)
@@ -326,7 +324,8 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 	
 	
 if __name__ == '__main__':
-	writeModules('/home/Diyor.Zakirov/atmos_param')
+	pass
+	#writeModules('/home/Diyor.Zakirov/FMS')
 
 	
 	

@@ -28,35 +28,19 @@ From here you can run all the mkmf2 options including: -R, -v, -h
 '''
 
 from parseShort import writeModules,getAMCPP;
-import sys;
+import argparse;
 
 if __name__ == "__main__":
-	verbose = False
-	recursive = False
-	vv = False
-	mainDir = False
-	for i in sys.argv:
-		if i == "-R" or i == "--recursive": 
-			recursive = True
-		if i == "--verbose" or i == "-v":
-			verbose = True
-		if i == "-vv" or i == "--very-verbose":
-			vv = True
-		if i == "--maindir":
-			mainDir = True
-		if i == "-h" or i == "--help":
-			print("----------------------------")
-			print("Available options for mkmf2")
-			print("-v/--verbose         Prints out each step the script is doing")
-			print("-vv/--very-verbose   Prints out more detailed steps of the scripts")
-			print("-R/--recursive       Run the script recursively, including all sub directories")
-			print("--maindir            Specifies that this is a main directory for AMCPPFLAGS")
-			print("-h/--help            Available arguments for mkmf2 script")
-			sys.exit()
-			
+	parser = argparse.ArgumentParser(prog='mkmf')
+	parser.add_argument("path", help="Path to the fortran modules")
+	parser.add_argument("-R","--recursive", help="Run the script recursively, including all sub directories", action="store_true")
+	parser.add_argument("-v","--verbose", help="Prints out each step the script is doing", action="store_true")
+	parser.add_argument("-vv","--veryverbose", help="Prints out more detailed steps of the script", action="store_true")
+	parser.add_argument("--maindir", help="Specifies that this is a main directory for AMCPPFLAGS", action="store_true")
+	args = parser.parse_args()
 	
-	writeModules(sys.argv[1], verbose, vv, recursive, mainDir)
-	if verbose or vv:
+	writeModules(args.path, args.verbose, args.veryverbose, args.recursive, args.maindir)
+	if args.verbose or args.veryverbose:
 		print("-------------------------------")
 		print("All dependencies are resolved.")
 		print("-------------------------------")
