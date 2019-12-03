@@ -13,11 +13,11 @@ python parserTest.py diag_manager.F90
 
 4. The script will print out all the module dependencies the file has.
 5. You also can test the Makefile.am creation.
-6. Run the mkmf2.py script with a full path to the folder with Fortran modules.
+6. Run the mkmf2 script with a full path to the folder with Fortran modules.
 
 **Example:**
 ```
-python mkmf2.py path/to/your/folder
+./mkmf2.py path/to/your/folder
 ``` 
 **Available options for mkmf2.py**
 ```

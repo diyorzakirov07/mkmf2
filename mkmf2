@@ -32,7 +32,7 @@ import argparse;
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(prog='mkmf')
-	parser.add_argument("path", help="Path to the fortran modules")
+	parser.add_argument("path", help="Full path to the fortran modules")
 	parser.add_argument("-R","--recursive", help="Run the script recursively, including all sub directories", action="store_true")
 	parser.add_argument("-v","--verbose", help="Prints out each step the script is doing", action="store_true")
 	parser.add_argument("-vv","--veryverbose", help="Prints out more detailed steps of the script", action="store_true")
