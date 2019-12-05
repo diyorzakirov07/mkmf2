@@ -92,8 +92,6 @@ def getFileModuleName(fileName):
 	moduleNameMatch = re.compile('^ *MODULE+.*', re.IGNORECASE | re.M)
 	
 	matches = re.findall(moduleNameMatch, fileContents)
-	print(fileName)
-	print(matches)
 	if not matches or matches[0] in badChars:
 		matches = ' '
 		return matches
@@ -152,7 +150,7 @@ def getAMCPP(path):
 	return amcppDic
 			
 			
-def writeModules(path, verbose = False, vv = False, recursive = True, mainDir = True):
+def writeModules(path, verbose = False, vv = False, recursive = False, mainDir = False):
 	"""Creates a Makefile.am
 	
 	Creates a Makefile.am in the path provided, resolving all possible dependencies.
@@ -232,7 +230,10 @@ def writeModules(path, verbose = False, vv = False, recursive = True, mainDir = 
 			if verbose or vv:
 				print("Found source file: " + file)
 			SOURCES_str += ("\t" + file + " \\\n")
-			MODULESINIT_str += (getFileModuleName(file) + ".$(FC_MODEXT) : " + file.split('.')[0] + ".$(OBJEXT)\n")
+			if getFileModuleName(file) != ' ':
+				MODULESINIT_str += (getFileModuleName(file) + ".$(FC_MODEXT) : " + file.split('.')[0] + ".$(OBJEXT)\n")
+				"""List all modules files in built_sources"""
+				BUILTSOURCES_str += ("\t" + getFileModuleName(file) + ".$(FC_MODEXT) \\\n")
 			
 			"""List dependencies of each file"""
 			set1 = set(getModules(file, verbose,vv)).intersection(getPathModuleNameList(path))
@@ -262,10 +263,7 @@ def writeModules(path, verbose = False, vv = False, recursive = True, mainDir = 
 			if DONE:
 				DEPENDENCIES_str = DEPENDENCIES_str[0:len(DEPENDENCIES_str)-3] + "\n"
 				DONE = False		
-			
-			"""List all modules files in built_sources"""
-			BUILTSOURCES_str += ("\t" + getFileModuleName(file) + ".$(FC_MODEXT) \\\n")
-	
+		
 	
 	"""Write populated strings to the file"""
 	if AMCPPFLAGS_str != '':
@@ -331,7 +329,8 @@ def writeModules(path, verbose = False, vv = False, recursive = True, mainDir = 
 	
 	
 if __name__ == '__main__':
-	writeModules('/home/Diyor.Zakirov/FMS')
+	pass
+	#writeModules('/home/Diyor.Zakirov/FMS')
 
 	
 	
