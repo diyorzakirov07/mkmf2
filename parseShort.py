@@ -89,14 +89,21 @@ def getFileModuleName(fileName):
 	
 	fileContents = open(fileName, encoding = 'latin-1').read()
 	
-	moduleNameMatch = re.compile('MODULE+.*', re.IGNORECASE)
+	moduleNameMatch = re.compile('^ *MODULE+.*', re.IGNORECASE | re.M)
 	
 	matches = re.findall(moduleNameMatch, fileContents)
+	print(fileName)
+	print(matches)
 	if not matches or matches[0] in badChars:
 		matches = ' '
 		return matches
 	else:
-		return matches[0].split(' ')[1]
+		result = matches[0]
+		for char in ['module', 'MODULE', ' ']:
+			print(result)
+			result = result.replace(char, '')
+		
+		return result
 
 
 def getPathModuleNameList(path):
@@ -145,7 +152,7 @@ def getAMCPP(path):
 	return amcppDic
 			
 			
-def writeModules(path, verbose = False, vv = False, recursive = False, mainDir = False):
+def writeModules(path, verbose = False, vv = False, recursive = True, mainDir = True):
 	"""Creates a Makefile.am
 	
 	Creates a Makefile.am in the path provided, resolving all possible dependencies.
@@ -324,8 +331,7 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 	
 	
 if __name__ == '__main__':
-	pass
-	#writeModules('/home/Diyor.Zakirov/FMS')
+	writeModules('/home/Diyor.Zakirov/FMS')
 
 	
 	
