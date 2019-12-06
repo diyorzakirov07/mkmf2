@@ -230,8 +230,8 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 			if verbose or vv:
 				print("Found source file: " + file)
 			NOINSTLTL_str += ("\tlib" + file.split('.')[0] + ".la \\\n")
-			SOURCES_str += ("lib" + file.split('.')[0] + "_la_SOURCES = " + file + " " + getFileModuleName(file) + ".mod \n")
 			if getFileModuleName(file) != ' ':
+				SOURCES_str += ("lib" + file.split('.')[0] + "_la_SOURCES = " + file + " " + getFileModuleName(file) + ".mod \n")
 				MODULESINIT_str += (file.split('.')[0] + ".$(OBJEXT): " + getFileModuleName(file) + ".mod \n")
 				"""List all modules files in built_sources"""
 				MODFILES_str += ("\t" + getFileModuleName(file) + '.mod \\\n')
@@ -293,6 +293,9 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 			if vv:
 				print(SOURCES_str)
 		makefile.write("noinst_LTLIBRARIES = \\\n" + NOINSTLTL_str[0:len(NOINSTLTL_str)-2] + '\n')
+		
+		makefile.write("\n\n")
+		
 		makefile.write(SOURCES_str + '\n')
 		
 		makefile.write("\n\n")
@@ -323,14 +326,14 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 		
 		makefile.write("\n\n")
 	
-	makefile.write("$(top_srcdir)/mkfmods.mk \n")
+	makefile.write("include $(top_srcdir)/mkfmods.mk \n\n")
 	makefile.write("CLEANFILES = *.mod")
 	
 	
 	
 if __name__ == '__main__':
 	pass
-	#writeModules('/home/Diyor.Zakirov/FMS')
+	#writeModules('/home/Diyor.Zakirov/atmos_param')
 
 	
 	
