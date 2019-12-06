@@ -98,7 +98,6 @@ def getFileModuleName(fileName):
 	else:
 		result = matches[0]
 		for char in ['module', 'MODULE', ' ']:
-			print(result)
 			result = result.replace(char, '')
 		
 		return result
@@ -188,13 +187,14 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 	
 	DONE = False
 	
-	AMCPPFLAGS_str = ''
+	AMCPPFLAGS_str = '\t-I$[top_scrdir]/include \\\n' + '\t-I${builddir}/.mods \\\n'
 	SUBDIRS_str = ''
 	SUBDIRSLIB_str = ''
+	NOINSTLTL_str = ''
 	SOURCES_str = ''
 	MODULESINIT_str = ''
 	DEPENDENCIES_str = ''
-	BUILTSOURCES_str = ''
+	MODFILES_str = ''
 	
 	if verbose or vv:
 		print("Setting work directory to " + path + "\n")
@@ -229,11 +229,12 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 		if fortranMatch.match(file):
 			if verbose or vv:
 				print("Found source file: " + file)
-			SOURCES_str += ("\t" + file + " \\\n")
+			NOINSTLTL_str += ("\tlib" + file.split('.')[0] + ".la \\\n")
+			SOURCES_str += ("lib" + file.split('.')[0] + "_la_SOURCES = " + file + " " + getFileModuleName(file) + ".mod \n")
 			if getFileModuleName(file) != ' ':
-				MODULESINIT_str += (getFileModuleName(file) + ".$(FC_MODEXT) : " + file.split('.')[0] + ".$(OBJEXT)\n")
+				MODULESINIT_str += (file.split('.')[0] + ".$(OBJEXT): " + getFileModuleName(file) + ".mod \n")
 				"""List all modules files in built_sources"""
-				BUILTSOURCES_str += ("\t" + getFileModuleName(file) + ".$(FC_MODEXT) \\\n")
+				MODFILES_str += ("\t" + getFileModuleName(file) + '.mod \\\n')
 			
 			"""List dependencies of each file"""
 			set1 = set(getModules(file, verbose,vv)).intersection(getPathModuleNameList(path))
@@ -253,15 +254,15 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 					print("Dependencies...\n")
 					print(set1)
 					print(set2)
-				DEPENDENCIES_str += (file.split('.')[0] + ".$(OBJEXT) : \\\n")
+				DEPENDENCIES_str += (getFileModuleName(file) + ".mod: ")
 			for mod in set1:
 				DONE = True
-				DEPENDENCIES_str += ("\t" + mod + ".$(FC_MODEXT) \\\n")
+				DEPENDENCIES_str += (mod + '.mod ')
 			for mod in set2:
 				DONE = True
-				DEPENDENCIES_str += ("\t" + mod + ".$(FC_MODEXT) \\\n")
+				DEPENDENCIES_str += (mod + '.mod ')
 			if DONE:
-				DEPENDENCIES_str = DEPENDENCIES_str[0:len(DEPENDENCIES_str)-3] + "\n"
+				DEPENDENCIES_str += "\n"
 				DONE = False		
 		
 	
@@ -291,9 +292,8 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 			print("\nWriting Fortran sources... \n")
 			if vv:
 				print(SOURCES_str)
-		makefile.write("noinst_LTLIBRARIES = lib" + folder + ".la\n" +
-					  "lib" + folder +"_la_SOURCES = \\\n" + 
-					  SOURCES_str[0:len(SOURCES_str)-2] + '\n')
+		makefile.write("noinst_LTLIBRARIES = \\\n" + NOINSTLTL_str[0:len(NOINSTLTL_str)-2] + '\n')
+		makefile.write(SOURCES_str + '\n')
 		
 		makefile.write("\n\n")
 		
@@ -316,15 +316,15 @@ def writeModules(path, verbose = False, vv = False, recursive = False, mainDir =
 		if verbose or vv:
 			print("\nWriting built_sources... \n")
 			if vv:
-				print(BUILTSOURCES_str)
-		makefile.write("MODFILES = \\\n" + BUILTSOURCES_str[0:len(BUILTSOURCES_str)-3] + '\n' + 
-					"BUILT_SOURCES = $(MODFILES)\n" + 
-					"include_HEADERS = $(MODFILES)\n")
+				print(MODFILES_str)
+		makefile.write("MODFILES = \\\n" + MODFILES_str[0:len(MODFILES_str)-3] + '\n' + 
+					"include_HEADERS = $(MODFILES)\n" + 
+					"BUILT_SOURCES = $(MODFILES)\n")
 		
 		makefile.write("\n\n")
 	
-	
-	makefile.write("CLEANFILES = *.$(FC_MODEXT)")
+	makefile.write("$(top_srcdir)/mkfmods.mk \n")
+	makefile.write("CLEANFILES = *.mod")
 	
 	
 	
